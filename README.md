@@ -202,7 +202,7 @@ per-instance settings.
     sudo systemctl start gunicorn@${INSTANCE_NAME}
     ```
 
-    Check for errors using `journalctl -u gunicorn@${INSTANCE_NAME}`
+    Check for errors using `journalctl -e -u gunicorn@${INSTANCE_NAME}`
     
 4. Setup `nginx`
 
@@ -220,7 +220,7 @@ per-instance settings.
     sudo systemctl restart nginx
     ```
 
-    Check for errors using `journalctl -u nginx`
+    Check for errors using `journalctl -e -u nginx`
 
 
 ### Test Sample Project ###
@@ -233,4 +233,23 @@ the url.
 ```bash
 curl http://127.0.0.1:8000
 curl -H "User-Agent: test" http://127.0.0.1:8000
+```
+
+Test per-instance settings. This sets `DEBUG` to False for this instance and
+since `ALLOWED_HOSTS` is empty this generates a bad request error.
+
+```bash
+sudo --preserve-env=INSTANCE_NAME \
+    -u ${INSTANCE_USER} \
+    bash -c 'echo "DEBUG = False" > ~/.${INSTANCE_NAME}/settings.py'
+curl http://127.0.0.1:8000
+```
+
+Now set `ALLOWED_HOSTS`.
+
+```bash
+sudo --preserve-env=INSTANCE_NAME \
+    -u ${INSTANCE_USER} \
+    bash -c 'echo "ALLOWED_HOSTS = [\"127.0.0.1\"]" >> ~/.${INSTANCE_NAME}/settings.py'
+curl http://127.0.0.1:8000
 ```
