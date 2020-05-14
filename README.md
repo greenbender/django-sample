@@ -140,14 +140,14 @@ your project requires additional system packages you should install them prior
 to this step.
 
 ```bash
-sudo mkdir /opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}
-sudo chown ${INSTANCE_USER}:${INSTANCE_USER} /opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}
-sudo -u ${INSTANCE_USER} git clone ${PROJECT_ORIGIN} /opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}
+sudo mkdir /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
+sudo chown ${INSTANCE_USER}:${INSTANCE_USER} /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
+sudo -u ${INSTANCE_USER} git clone ${PROJECT_ORIGIN} /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 source /opt/${INSTANCE_NAME}-venv/bin/activate
-pip install -r /opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}/requirements.txt
+pip install -r /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/requirements.txt
 sudo su ${INSTANCE_USER}
 source /opt/${INSTANCE_NAME}-venv/bin/activate # Only if not already in the virtual environment
-/opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}/manage.py migrate # If DB initialisation required
+/opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/manage.py migrate # If DB initialisation required
 ```
 
 For you are deploying a simple project for Development purposes your project is
@@ -172,7 +172,7 @@ developer.
     ```bash
     sudo mkdir /opt/${INSTANCE_NAME}-venv/etc
     sudo cp \
-        /opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}/resources/gunicorn/gunicorn.conf.py \
+        /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/gunicorn/gunicorn.conf.py \
         /opt/${INSTANCE_NAME}-venv/etc/
     ```
 
@@ -182,7 +182,7 @@ developer.
 
     ```bash
     sudo mkdir /opt/${INSTANCE_NAME}-venv/run
-    sudo cp /opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}/resources/systemd/* \
+    sudo cp /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/systemd/* \
         /etc/systemd/system/
     sudo systemctl enable gunicorn@${INSTANCE_NAME}.socket
     sudo systemctl enable gunicorn@${INSTANCE_NAME}.service
@@ -198,7 +198,7 @@ developer.
     sudo rm /etc/nginx/sites-enabled/default*
     sudo rm /etc/nginx/sites-available/default*
     sudo cp \
-        /opt/${INSTANCE_NAME}-venv/{$PROJECT_NAME}/resources/nginx/* \
+        /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/nginx/* \
         /etc/nginx/sites-available/
     for f in /etc/nginx/sites-available/*; do \
         ln -s ../sites-available/${f##*/} /etc/nginx/sites-enabled/${f##*/}; done
