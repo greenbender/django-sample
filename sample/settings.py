@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import sys
 import errno
 import string
 import random
@@ -35,12 +36,14 @@ def get_data(filename, mkdir=True):
 
 # Helper to get per-instance settings
 def get_instance_settings(path):
-    if os.path.isfile(path):
-        spec = importlib.util.spec_from_file_location('instance', path)
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        return mod
-    return object()
+    if not os.path.isfile(path):
+        open(path, 'w').write('# Put instance settings here\n')
+    name = f'{__name__}.instance'
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
 
 
 # helper to generate and persist a secret key
@@ -79,7 +82,7 @@ instance = get_instance_settings(os.path.join(INSTANCE_DIR, 'settings.py'))
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getattr(instance, 'DEBUG', True)
 
 
 ALLOWED_HOSTS = getattr(instance, 'ALLOWED_HOSTS', [])
