@@ -241,7 +241,7 @@ since `ALLOWED_HOSTS` is empty this generates a bad request error.
 ```bash
 sudo --preserve-env=INSTANCE_NAME \
     -u ${INSTANCE_USER} \
-    bash -c 'echo "DEBUG = False" > ~/.${INSTANCE_NAME}/settings.py'
+    bash -c 'echo "DEBUG = False" >> ~/.${INSTANCE_NAME}/settings.py'
 curl http://127.0.0.1:8000
 ```
 
