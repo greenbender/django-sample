@@ -1,0 +1,9 @@
+## apt packages ##
+
+### dev ###
+virtualenv
+git
+vim
+
+### production (in addition to dev) ###
+nginx
