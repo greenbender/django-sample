@@ -91,7 +91,7 @@ export PROJECT_NAME=sample
 Set the origin for your project.
 
 ```bash
-export PROJECT_ORIGIN=https://gitlab.com/slartibartfaster/django-sample.git
+export PROJECT_ORIGIN=https://github.com/greenbender/django-sample.git
 ```
 
 Pick an instance name for your project. Typically this will be the same name as
