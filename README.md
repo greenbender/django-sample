@@ -208,8 +208,7 @@ per-instance settings.
 
     ```bash
     sudo apt install nginx
-    sudo rm /etc/nginx/sites-enabled/default*
-    sudo rm /etc/nginx/sites-available/default*
+    sudo rm /etc/nginx/sites-*/default
     sudo cp \
         /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/nginx/* \
         /etc/nginx/sites-available/
@@ -233,4 +232,5 @@ the url.
 
 ```bash
 curl http://127.0.0.1:8000
+curl -H "User-Agent: test" http://127.0.0.1:8000
 ```
