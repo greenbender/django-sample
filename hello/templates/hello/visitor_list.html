@@ -1,19 +1,2 @@
-<html>
-    <head>
-        <title>Hello</title>
-    </head>
-    <body>
-        <table>
-            <tr>
-                <th>User-Agent</th>
-                <th>Count</th>
-            </tr>
-            {% for object in object_list %}
-            <tr>
-                <td>{{ object.useragent }}</td>
-                <td>{{ object.count }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </body>
-</html>
+{% for object in object_list %}{{ object.count|rjust:'3' }} {{ object.useragent }}
+{% endfor %}

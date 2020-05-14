@@ -75,7 +75,7 @@ this sample).
 ```bash
 sudo apt update
 sudo apt dist-upgrade
-sudo apt-get install virtualenv git vim
+sudo apt install virtualenv git vim
 sudo update-alternatives --set editor /usr/bin/vim.basic
 ```
 
@@ -126,11 +126,12 @@ sudo mkdir /opt/${INSTANCE_NAME}-venv/home
 sudo adduser --system --group \
     --home /opt/${INSTANCE_NAME}-venv/home/${INSTANCE_USER} \
     --shell=/bin/bash ${INSTANCE_USER}
-sudo su ${INSTANCE_USER}
-cp /etc/skel/.bash*  ~/
-echo ". /opt/${INSTANCE_NAME}-venv/bin/activate" >> ~/.bashrc
-echo "set tabstop=4 shiftwidth=4 expandtab" > ~/.vimrc
-exit
+sudo --preserve-env=INSTANCE_NAME \
+    -u ${INSTANCE_USER} \
+    bash -c '
+    cp /etc/skel/.bash* ~/
+    echo ". /opt/${INSTANCE_NAME}-venv/bin/activate" >> ~/.bashrc
+    echo "set tabstop=4 shiftwidth=4 expandtab" > ~/.vimrc'
 ```
 
 #### Install the Django project ####
@@ -141,24 +142,38 @@ to this step.
 
 ```bash
 sudo mkdir /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
-sudo chown ${INSTANCE_USER}:${INSTANCE_USER} /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
-sudo -u ${INSTANCE_USER} git clone ${PROJECT_ORIGIN} /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
-source /opt/${INSTANCE_NAME}-venv/bin/activate
-pip install -r /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/requirements.txt
-sudo su ${INSTANCE_USER}
-source /opt/${INSTANCE_NAME}-venv/bin/activate # Only if not already in the virtual environment
-/opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/manage.py migrate # If DB initialisation required
+sudo chown ${INSTANCE_USER}:${INSTANCE_USER} \
+    /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
+sudo -u ${INSTANCE_USER} git clone ${PROJECT_ORIGIN} \
+    /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
+sudo /opt/${INSTANCE_NAME}-venv/bin/pip install -r \
+    /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/requirements.txt
+sudo -u ${INSTANCE_USER} /opt/${INSTANCE_NAME}-venv/bin/python \
+    /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/manage.py migrate
 ```
 
-For you are deploying a simple project for Development purposes your project is
-ready to use now. Run it with `python manage.py runserver`. For complex
-projects there may be additional steps which are left as an exercise for the
-developer.
+If you are deploying a simple project for development purposes your project is
+now ready to use.
+
+To run your project in development mode, or to test the sample project in
+development mode then use `runserver` as shown. NOTE: The `sudo` here is just
+for convenience for the deployment documentation, usually you will be the user,
+your current working directory will be the project directory, you will have an
+active virtualenv and you will simply run `python manage.py runserver`
+
+```bash
+sudo -u ${INSTANCE_USER} /opt/${INSTANCE_NAME}-venv/bin/python \
+    /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/manage.py runserver
+```
+
+If you are deploying the sample project and you ran the above command skip down
+to `Test Sample Project` now.
 
 
 #### (Optional) Production Setup ####
 
-1. Setup per-instance `settings.py`
+1. Setup per-instance `settings.py`. Skip the step if you don't need
+per-instance settings.
 
     ```bash
     sudo su ${INSTANCE_USER}
@@ -175,8 +190,6 @@ developer.
         /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/gunicorn/gunicorn.conf.py \
         /opt/${INSTANCE_NAME}-venv/etc/
     ```
-
-    Then edit `/opt/${INSTANCE_NAME}-venv/etc/gunicorn.conf.py` to suit your requirements.
 
 3. Setup `systemd`
 
@@ -200,14 +213,24 @@ developer.
     sudo cp \
         /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/nginx/* \
         /etc/nginx/sites-available/
-    for f in /etc/nginx/sites-available/*; do \
-        ln -s ../sites-available/${f##*/} /etc/nginx/sites-enabled/${f##*/}; done
-    ```
-
-    Then edit the files you have added to `/etc/nginx/sites-enabled/` to suit your requirements.
-
-    ```bash
-    sudo systemctl nginx restart
+    sudo bash -c '
+        for f in /etc/nginx/sites-available/*; do
+            ln -s ../sites-available/${f##*/} /etc/nginx/sites-enabled/${f##*/};
+        done'
+    sudo vim -p /etc/nginx/sites-available/*
+    sudo systemctl restart nginx
     ```
 
     Check for errors using `journalctl -u nginx`
+
+
+### Test Sample Project ###
+
+If you deployed the sample project you can test it now. When you run the
+command you should get a text reponse showing a list of User-Agents where each
+User-Agent is preceeded by the number of times that User-Agent has requested
+the url.
+
+```bash
+curl http://127.0.0.1:8000
+```
