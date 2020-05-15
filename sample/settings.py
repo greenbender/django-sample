@@ -64,12 +64,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_NAME = os.path.basename(BASE_DIR)
 
 
-# A unique name for this instance
-INSTANCE_NAME = os.environ.get('INSTANCE_NAME', PROJECT_NAME)
-
-
 # The directory where instance related data is stored
-INSTANCE_DIR = os.path.expanduser(f'~/.{INSTANCE_NAME}')
+INSTANCE_DIR = os.path.join(os.environ['VIRTUAL_ENV'], 'var')
 
 
 # Quick-start development settings - unsuitable for production

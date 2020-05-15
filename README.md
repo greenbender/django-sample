@@ -14,8 +14,7 @@ of the layout are:
 ##### sample/settings.py #####
 
 This `settings.py` file supports the use of *per-instance settings.py files* that
-are stored in a per-instance directory in the home directory of the user that
-the project runs as.
+are stored in a per-instance directory.
 
 In your project the `settings.py` file can be changed to match your
 requirements, however, if there are settings that per-instance configurable
@@ -28,10 +27,11 @@ done.
 It is also important that no *secrets* are stored in the `settings.py` file
 since it is committed to the project. You can use the `get_path` and `get_data`
 helper functions in `settings.py` to help with access secrets that are
-appropriately stored (usually in the user home directory with 0600
-permissions). The `sample/settings.py` file already does this for the
-`SECRET_KEY` setting and as a *bonus* it will generate a secret key for you if
-one doesn't exist.
+appropriately stored. Secrets that are per-instance should be stored in the
+`INSTANCE_DIR` and global secrets can be stored in the users home directory
+(ensure files storing secrets have 0600 permissions). The `sample/settings.py`
+file already does this for the `SECRET_KEY`, and as a *bonus* it will generate
+a secret key for you if one doesn't exist.
 
 ##### resources/... #####
 
@@ -96,7 +96,7 @@ export PROJECT_ORIGIN=https://github.com/greenbender/django-sample.git
 
 Pick an instance name for your project. Typically this will be the same name as
 the Django project but if you are running multiple instances then choose a
-unique name.
+unique name. The path for the virtualenv will be derived from this name.
 
 ```bash
 export INSTANCE_NAME=${PROJECT_NAME}
@@ -144,6 +144,9 @@ to this step.
 sudo mkdir -p /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 sudo chown ${INSTANCE_USER}:${INSTANCE_USER} \
     /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
+sudo mkdir -p /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/var
+sudo chown ${INSTANCE_USER}:${INSTANCE_USER} \
+    /opt/${INSTANCE_NAME}-venv/var
 sudo -u ${INSTANCE_USER} git clone ${PROJECT_ORIGIN} \
     /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 sudo /opt/${INSTANCE_NAME}-venv/bin/pip install -r \
@@ -177,7 +180,7 @@ per-instance settings.
 
     ```bash
     sudo su ${INSTANCE_USER}
-    vim ~/.${INSTANCE_NAME}/settings.py
+    vim /opt/${INSTANCE_NAME}-venv/var/settings.py
     # ...
     exit
     ```
@@ -223,7 +226,7 @@ per-instance settings.
     sudo rm /etc/nginx/sites-*/default*
     sudo --preserve-env=PROJECT_NAME,INSTANCE_NAME bash -c '
         for f in /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/nginx/*; do
-            envsubst '"'"'${PROJECT_NAME}${INSTANCE_NAME}'"'"' \
+            envsubst '"'"'${INSTANCE_NAME}'"'"' \
                 < ${f} > /etc/nginx/sites-available/${f##*/}
             ln -s ../sites-available/${f##*/} /etc/nginx/sites-enabled/${f##*/}
         done'
@@ -250,7 +253,7 @@ since `ALLOWED_HOSTS` is empty this generates a bad request error.
 
 ```bash
 sudo -u ${INSTANCE_USER} \
-    bash -c "echo \"DEBUG = False\" >> ~/.${INSTANCE_NAME}/settings.py"
+    bash -c "echo \"DEBUG = False\" >> /opt/${INSTANCE_NAME}-venv/var/settings.py"
 curl http://127.0.0.1:8000
 ```
 
@@ -259,6 +262,6 @@ Now set `ALLOWED_HOSTS`.
 ```bash
 sudo --preserve-env=INSTANCE_NAME \
     -u ${INSTANCE_USER} \
-    bash -c 'echo "ALLOWED_HOSTS = [\'127.0.0.1\']" >> ~/.${INSTANCE_NAME}/settings.py'
+    bash -c 'echo "ALLOWED_HOSTS = [\'127.0.0.1\']" >> /opt/${INSTANCE_NAME}-venv/var/settings.py'
 curl http://127.0.0.1:8000
 ```

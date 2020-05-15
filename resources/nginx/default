@@ -8,11 +8,11 @@ server {
     server_name _;
 
     location /favicon.ico {
-        alias /opt/${INSTANCE_NAME}-venv/home/${INSTANCE_USER}/.${INSTANCE_NAME}/www/static/favicon.ico;
+        alias /opt/${INSTANCE_NAME}-venv/var/www/static/favicon.ico;
     }
 
     location /static/ {
-        alias /opt/${INSTANCE_NAME}-venv/home/${INSTANCE_USER}/.${INSTANCE_NAME}/www/static/;
+        alias /opt/${INSTANCE_NAME}-venv/var/www/static/;
         expires max;
     }
 

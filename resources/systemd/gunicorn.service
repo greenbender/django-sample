@@ -5,8 +5,6 @@ After=network.target
 
 [Service]
 Type=notify
-Environment=PROJECT_NAME=${PROJECT_NAME}
-Environment=INSTANCE_NAME=${INSTANCE_NAME}
 WorkingDirectory=/opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 User=${INSTANCE_USER}
 Group=${INSTANCE_USER}
