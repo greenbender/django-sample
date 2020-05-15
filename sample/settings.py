@@ -34,6 +34,16 @@ def get_data(filename, mkdir=True):
     return open(get_path(filename, mkdir=mkdir)).read().strip()
 
 
+# helper to generate and persist a secret key
+def get_secret_key(path):
+    if not os.path.isfile(path):
+        path = get_path(path)
+        secret = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(64)])
+        open(path, 'w').write(secret)
+        os.chmod(path, 0o600)
+    return get_data(path)
+
+
 # Helper to get per-instance settings
 def get_instance_settings(path):
     if not os.path.isfile(path):
@@ -46,14 +56,25 @@ def get_instance_settings(path):
     return mod
 
 
-# helper to generate and persist a secret key
-def get_secret_key(path):
-    if not os.path.isfile(path):
-        path = get_path(path)
-        secret = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(64)])
-        open(path, 'w').write(secret)
-        os.chmod(path, 0o600)
-    return get_data(path)
+# Test a directory for writability
+def is_writeable(path):
+    test = os.path.join(path, '.test')
+    try:
+        test = get_path(test)
+        open(test, 'w').close()
+        os.remove(test)
+        return True
+    except:
+        return False
+
+
+# Helper to get the instance dir (make it work even when not using a
+# virtualenv)
+def get_instance_dir(project_name):
+    var = os.path.join(sys.prefix, 'var')
+    if is_writable(var):
+        return var
+    return get_path(f'~/.{project_name}')
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -65,7 +86,7 @@ PROJECT_NAME = os.path.basename(BASE_DIR)
 
 
 # The directory where instance related data is stored
-INSTANCE_DIR = os.path.join(sys.prefix, 'var')
+INSTANCE_DIR = get_instance_dir(PROJECT_NAME)
 
 
 # Quick-start development settings - unsuitable for production
