@@ -182,7 +182,14 @@ per-instance settings.
     exit
     ```
 
-2. Setup `gunicorn`
+2. Collect static files
+
+    ```bash
+    sudo -u ${INSTANCE_USER} /opt/${INSTANCE_NAME}-venv/bin/python \
+        /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/manage.py collectstatic
+    ```
+
+3. Setup `gunicorn`
 
     ```bash
     sudo mkdir -p /opt/${INSTANCE_NAME}-venv/etc
@@ -191,15 +198,15 @@ per-instance settings.
         /opt/${INSTANCE_NAME}-venv/etc/
     ```
 
-3. Setup `systemd`
+4. Setup `systemd`
 
     ```bash
     sudo mkdir -p /opt/${INSTANCE_NAME}-venv/run
     sudo --preserve-env=PROJECT_NAME,INSTANCE_NAME,INSTANCE_USER bash -c '
-        envsubst \'${PROJECT_NAME}${INSTANCE_USER}${INSTANCE_USER}\' \
+        envsubst '"'"'${PROJECT_NAME}${INSTANCE_NAME}${INSTANCE_USER}'"'"' \
             < /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/systemd/gunicorn.socket \
             > /etc/systemd/system/gunicorn-${INSTANCE_NAME}.socket
-        envsubst \'${PROJECT_NAME}${INSTANCE_USER}${INSTANCE_USER}\' \
+        envsubst '"'"'${PROJECT_NAME}${INSTANCE_NAME}${INSTANCE_USER}'"'"' \
             < /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/systemd/gunicorn.service \
             > /etc/systemd/system/gunicorn-${INSTANCE_NAME}.service'
     sudo systemctl enable gunicorn-${INSTANCE_NAME}.socket
@@ -207,16 +214,17 @@ per-instance settings.
     sudo systemctl start gunicorn-${INSTANCE_NAME}
     ```
 
-    Check for errors using `journalctl -e -u gunicorn@${INSTANCE_NAME}`
+    Check for errors using `journalctl -e -u gunicorn-${INSTANCE_NAME}`
     
-4. Setup `nginx`
+5. Setup `nginx`
 
     ```bash
     sudo apt install nginx
     sudo rm /etc/nginx/sites-*/default*
     sudo --preserve-env=PROJECT_NAME,INSTANCE_NAME bash -c '
         for f in /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/nginx/*; do
-            envsubst \'${PROJECT_NAME}${INSTANCE_NAME}\' < ${f} > /etc/nginx/sites-available/${f##*/}
+            envsubst '"'"'${PROJECT_NAME}${INSTANCE_NAME}'"'"' \
+                < ${f} > /etc/nginx/sites-available/${f##*/}
             ln -s ../sites-available/${f##*/} /etc/nginx/sites-enabled/${f##*/}
         done'
     sudo systemctl restart nginx

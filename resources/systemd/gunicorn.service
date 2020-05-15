@@ -9,7 +9,7 @@ Environment=PROJECT_NAME=${PROJECT_NAME}
 Environment=INSTANCE_NAME=${INSTANCE_NAME}
 WorkingDirectory=/opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 User=${INSTANCE_USER}
-Group=${INSTANCE_GROUP}
+Group=${INSTANCE_USER}
 ExecStart=/opt/${INSTANCE_NAME}-venv/bin/gunicorn --config /opt/${INSTANCE_NAME}-venv/etc/gunicorn.conf.py ${PROJECT_NAME}.wsgi:application
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed
