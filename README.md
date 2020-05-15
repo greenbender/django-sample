@@ -102,7 +102,7 @@ unique name. The path for the virtualenv will be derived from this name.
 export INSTANCE_NAME=${PROJECT_NAME}
 ```
 
-Set the user for the instance. For development this can be your regualar
+Set the user for the instance. For development this can be your regular
 user. For production you should use the instance name.
 
 ```bash
@@ -136,7 +136,7 @@ sudo --preserve-env=INSTANCE_NAME \
 
 #### Install the Django project ####
 
-Clone the project into the virtual environment and to basic setup. NOTE: If
+Clone the project into the virtual environment and do basic setup. NOTE: If
 your project requires additional system packages you should install them prior
 to this step.
 
