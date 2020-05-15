@@ -122,7 +122,7 @@ have set `INSTANCE_USER` to your username). For production it is best practice t
 create a unique user per instance.
 
 ```bash
-sudo mkdir /opt/${INSTANCE_NAME}-venv/home
+sudo mkdir -p /opt/${INSTANCE_NAME}-venv/home
 sudo adduser --system --group \
     --home /opt/${INSTANCE_NAME}-venv/home/${INSTANCE_USER} \
     --shell=/bin/bash ${INSTANCE_USER}
@@ -141,7 +141,7 @@ your project requires additional system packages you should install them prior
 to this step.
 
 ```bash
-sudo mkdir /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
+sudo mkdir -p /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 sudo chown ${INSTANCE_USER}:${INSTANCE_USER} \
     /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 sudo -u ${INSTANCE_USER} git clone ${PROJECT_ORIGIN} \
@@ -185,7 +185,7 @@ per-instance settings.
 2. Setup `gunicorn`
 
     ```bash
-    sudo mkdir /opt/${INSTANCE_NAME}-venv/etc
+    sudo mkdir -p /opt/${INSTANCE_NAME}-venv/etc
     sudo cp \
         /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/gunicorn/gunicorn.conf.py \
         /opt/${INSTANCE_NAME}-venv/etc/
@@ -194,12 +194,17 @@ per-instance settings.
 3. Setup `systemd`
 
     ```bash
-    sudo mkdir /opt/${INSTANCE_NAME}-venv/run
-    sudo cp /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/systemd/* \
-        /etc/systemd/system/
-    sudo systemctl enable gunicorn@${INSTANCE_NAME}.socket
-    sudo systemctl enable gunicorn@${INSTANCE_NAME}.service
-    sudo systemctl start gunicorn@${INSTANCE_NAME}
+    sudo mkdir -p /opt/${INSTANCE_NAME}-venv/run
+    sudo --preserve-env=PROJECT_NAME,INSTANCE_NAME,INSTANCE_USER bash -c '
+        envsubst \'${PROJECT_NAME}${INSTANCE_USER}${INSTANCE_USER}\' \
+            < /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/systemd/gunicorn.socket \
+            > /etc/systemd/system/gunicorn-${INSTANCE_NAME}.socket
+        envsubst \'${PROJECT_NAME}${INSTANCE_USER}${INSTANCE_USER}\' \
+            < /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/systemd/gunicorn.service \
+            > /etc/systemd/system/gunicorn-${INSTANCE_NAME}.service'
+    sudo systemctl enable gunicorn-${INSTANCE_NAME}.socket
+    sudo systemctl enable gunicorn-${INSTANCE_NAME}.service
+    sudo systemctl start gunicorn-${INSTANCE_NAME}
     ```
 
     Check for errors using `journalctl -e -u gunicorn@${INSTANCE_NAME}`
@@ -208,15 +213,12 @@ per-instance settings.
 
     ```bash
     sudo apt install nginx
-    sudo rm /etc/nginx/sites-*/default
-    sudo cp \
-        /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/nginx/* \
-        /etc/nginx/sites-available/
-    sudo bash -c '
-        for f in /etc/nginx/sites-available/*; do
-            ln -s ../sites-available/${f##*/} /etc/nginx/sites-enabled/${f##*/};
+    sudo rm /etc/nginx/sites-*/default*
+    sudo --preserve-env=PROJECT_NAME,INSTANCE_NAME bash -c '
+        for f in /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/resources/nginx/*; do
+            envsubst \'${PROJECT_NAME}${INSTANCE_NAME}\' < ${f} > /etc/nginx/sites-available/${f##*/}
+            ln -s ../sites-available/${f##*/} /etc/nginx/sites-enabled/${f##*/}
         done'
-    sudo vim -p /etc/nginx/sites-available/*
     sudo systemctl restart nginx
     ```
 
@@ -239,9 +241,8 @@ Test per-instance settings. This sets `DEBUG` to False for this instance and
 since `ALLOWED_HOSTS` is empty this generates a bad request error.
 
 ```bash
-sudo --preserve-env=INSTANCE_NAME \
-    -u ${INSTANCE_USER} \
-    bash -c 'echo "DEBUG = False" >> ~/.${INSTANCE_NAME}/settings.py'
+sudo -u ${INSTANCE_USER} \
+    bash -c "echo \"DEBUG = False\" >> ~/.${INSTANCE_NAME}/settings.py"
 curl http://127.0.0.1:8000
 ```
 
@@ -250,6 +251,6 @@ Now set `ALLOWED_HOSTS`.
 ```bash
 sudo --preserve-env=INSTANCE_NAME \
     -u ${INSTANCE_USER} \
-    bash -c 'echo "ALLOWED_HOSTS = [\"127.0.0.1\"]" >> ~/.${INSTANCE_NAME}/settings.py'
+    bash -c 'echo "ALLOWED_HOSTS = [\'127.0.0.1\']" >> ~/.${INSTANCE_NAME}/settings.py'
 curl http://127.0.0.1:8000
 ```

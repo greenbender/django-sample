@@ -1,6 +1,5 @@
 import multiprocessing
 
-wsgi_app = 'sample.wsgi:application'
 umask = 0o007
 #workers = min(multiprocessing.cpu_count() * 2 + 1, 8)
 workers = 1

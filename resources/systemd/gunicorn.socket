@@ -1,8 +1,8 @@
 [Unit]
-Description=Gunicorn socket for %i
+Description=Gunicorn socket for ${INSTANCE_NAME}
 
 [Socket]
-ListenStream=/opt/%i-venv/run/gunicorn.sock
+ListenStream=/opt/${INSTANCE_NAME}-venv/run/gunicorn.sock
 SocketUser=www-data
 SocketGroup=www-data
 SocketMode=0600
