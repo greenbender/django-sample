@@ -72,7 +72,7 @@ def is_writeable(path):
 # virtualenv)
 def get_instance_dir(project_name):
     var = os.path.join(sys.prefix, 'var')
-    if is_writable(var):
+    if is_writeable(var):
         return var
     return get_path(f'~/.{project_name}')
 
