@@ -144,7 +144,7 @@ to this step.
 sudo mkdir -p /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
 sudo chown ${INSTANCE_USER}:${INSTANCE_USER} \
     /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}
-sudo mkdir -p /opt/${INSTANCE_NAME}-venv/${PROJECT_NAME}/var
+sudo mkdir -p /opt/${INSTANCE_NAME}-venv/var
 sudo chown ${INSTANCE_USER}:${INSTANCE_USER} \
     /opt/${INSTANCE_NAME}-venv/var
 sudo -u ${INSTANCE_USER} git clone ${PROJECT_ORIGIN} \
@@ -252,8 +252,10 @@ Test per-instance settings. This sets `DEBUG` to False for this instance and
 since `ALLOWED_HOSTS` is empty this generates a bad request error.
 
 ```bash
-sudo -u ${INSTANCE_USER} \
-    bash -c "echo \"DEBUG = False\" >> /opt/${INSTANCE_NAME}-venv/var/settings.py"
+sudo --preserve-env=INSTANCE_NAME \
+    -u ${INSTANCE_USER} \
+    bash -c 'echo "DEBUG = False" \
+        >> /opt/${INSTANCE_NAME}-venv/var/settings.py'
 curl http://127.0.0.1:8000
 ```
 
@@ -262,6 +264,7 @@ Now set `ALLOWED_HOSTS`.
 ```bash
 sudo --preserve-env=INSTANCE_NAME \
     -u ${INSTANCE_USER} \
-    bash -c 'echo "ALLOWED_HOSTS = [\'127.0.0.1\']" >> /opt/${INSTANCE_NAME}-venv/var/settings.py'
+    bash -c 'echo "ALLOWED_HOSTS = ['"'"'127.0.0.1'"'"']" \
+        >> /opt/${INSTANCE_NAME}-venv/var/settings.py'
 curl http://127.0.0.1:8000
 ```

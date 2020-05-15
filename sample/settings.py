@@ -65,7 +65,7 @@ PROJECT_NAME = os.path.basename(BASE_DIR)
 
 
 # The directory where instance related data is stored
-INSTANCE_DIR = os.path.join(os.environ['VIRTUAL_ENV'], 'var')
+INSTANCE_DIR = os.path.join(sys.prefix, 'var')
 
 
 # Quick-start development settings - unsuitable for production
